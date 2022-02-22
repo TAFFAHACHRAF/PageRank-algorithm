@@ -1,4 +1,4 @@
-
+// created by Achraf TAFFAH
 #include <stdio.h>
 #include <math.h>
 #include <stdio.h>
@@ -11,7 +11,7 @@
 static int k=0;
 
 int max=255; // variable global pour les prochaines utilisations
-FILE* repertoire = NULL; // Déclaration d'un fichier
+FILE* repertoire = NULL; // DÃ©claration d'un fichier
 
 void AffcherLaListeDesPays(){
 	
@@ -23,20 +23,20 @@ void AffcherLaListeDesPays(){
     }	
 }
 int main(){
-  /*************************** Affichage de données existent dans la DATASET  ***************************/
+  /*************************** Affichage de donnÃ©es existent dans la DATASET  ***************************/
    AffcherLaListeDesPays();
   //FIN de l'affichage
   
   /*************************** TEMPS,VARIABLES ***************************/
 
-  // Gardez une trace du temps d'exécution
+  // Gardez une trace du temps d'exÃ©cution
   clock_t begin, end;
   double time_spent;
   begin = clock();
   int numthreads = 16;
   int granularity = 8;
 
-  /******************* FICHIER OUVERT + NOMBRE DE NŒUDS/ARÊTS ********************/
+  /******************* FICHIER OUVERT + NOMBRE DE NÅ’UDS/ARÃŠTS ********************/
 
   // Ouvrir la DATASET 
   char filename[]="Wiki-Vote.txt";
@@ -46,42 +46,42 @@ int main(){
     exit(1);
   }
   
-  // Lire l'ensemble de données et obtenir le nombre de nœuds (n) et d'arêtes (e)
+  // Lire l'ensemble de donnÃ©es et obtenir le nombre de nÅ“uds (n) et d'arÃªtes (e)
   int n, e;
   char ch;
   char str[100];
   ch = getc(fp);
   while((ch = fgetc(fp)) != EOF) {
     fgets(str, 100-1, fp);
-    sscanf (str,"%*s %d %*s %d", &n, &e); //nombre de nœuds
+    sscanf (str,"%*s %d %*s %d", &n, &e); //nombre de nÅ“uds
     ch = getc(fp);
   }
   ungetc(ch,fp);
   
-  // DEBUG : imprimez le nombre de nœuds et d'arêtes, ignorez tout le reste
-  printf("\nDonnee du graphe :\n\n Sommet : %d, Arret: %d \n\n", n, e);  
+  // DEBUGÂ : imprimez le nombre de nÅ“uds et d'arÃªtes, ignorez tout le reste
+  printf("\nDonnee du grapheÂ :\n\n SommetÂ : %d, Arret: %d \n\n", n, e);  
   
   /************************* STRUCTURES RSE *****************************/
     
-  /* Format de ligne clairsemé compressé :
-      - Val vector : contient 1,0 si une arête existe dans une certaine ligne
+  /* Format de ligne clairsemÃ© compressÃ©Â :
+      - Val vectorÂ : contient 1,0 si une arÃªte existe dans une certaine ligne
       - Vecteur Col_ind : contient l'index de colonne de la valeur correspondante dans 'val'
-      - Vecteur Row_ptr : pointe vers le début de chaque ligne dans 'col_ind'
+      - Vecteur Row_ptrÂ : pointe vers le dÃ©but de chaque ligne dans 'col_ind'
   */
   float *val = calloc(e, sizeof(float));
   int *col_ind = calloc(e, sizeof(int));
   int *row_ptr = calloc(n+1, sizeof(int));
  
-  // La première ligne commence toujours à la position 0
+  // La premiÃ¨re ligne commence toujours Ã  la position 0
   row_ptr[0] = 0;
 
   int fromnode, tonode;
   int cur_row = 0;
   int i = 0;
   int j = 0;
-  // Éléments pour la ligne
+  // Ã‰lÃ©ments pour la ligne
   int elrow = 0;
-  // Nombre cumulé d'éléments
+  // Nombre cumulÃ© d'Ã©lÃ©ments
   int curel = 0;
   
   while(!feof(fp)){
@@ -131,7 +131,7 @@ int main(){
  
   /******************* INITIALISATION DE P, FACTEUR D'AMORTISSEMENT ************************/
 
-  // Définit le facteur d'amortissement 'd'
+  // DÃ©finit le facteur d'amortissement 'd'
   float d = 0.85;
   
   // Initialise le vecteur p[]
@@ -140,11 +140,11 @@ int main(){
     p[i] = 1.0/n;
   }
   
-  // Définit la condition de bouclage et le nombre d'itérations 'k'
+  // DÃ©finit la condition de bouclage et le nombre d'itÃ©rations 'k'
   int looping = 1;
   int k = 0;
 
-  // Définit 'parallel' en fonction du nombre de threads
+  // DÃ©finit 'parallel' en fonction du nombre de threads
   int parallel = 0;
   if (numthreads >= 2) {
           parallel = 1;
@@ -165,7 +165,7 @@ int main(){
     int rowel = 0;
     int curcol = 0;
     
-	// Algorithme de page rank modifié + parallélisation
+	// Algorithme de page rank modifiÃ© + parallÃ©lisation
     #pragma omp parallel for schedule(static) if(parallel) num_threads(numthreads)
     for(i=0; i<n; i = i + granularity){
       rowel = row_ptr[i+1] - row_ptr[i];
@@ -175,40 +175,40 @@ int main(){
       }
     }
 
-	// Ajustement pour gérer les éléments pendants  
+	// Ajustement pour gÃ©rer les Ã©lÃ©ments pendants  
     for(i=0; i<n; i++){
       p_new[i] = d * p_new[i] + ((1.0 - d) / n);
     }
        
-	// TERMINATION : vérifie si nous devons nous arrêter
+	// TERMINATIONÂ : vÃ©rifie si nous devons nous arrÃªter
     float error = 0.0;
     for(i=0; i<n; i++){
       error =  error + fabs(p_new[i] - p[i]);
     }
-	//si deux instances consécutives du vecteur pagerank sont presque identiques, stop   
+	//si deux instances consÃ©cutives du vecteur pagerank sont presque identiques, stop   
     if (error < 0.000001){
       looping = 0;
     }
     
-	// Mettre à jour p[]
+	// Mettre Ã  jour p[]
     for (i=0; i<n;i++){
 	    	p[i] = p_new[i];
     }
     
-	// Augmenter le nombre d'itérations
+	// Augmenter le nombre d'itÃ©rations
     k=k+2;
 }
   
   /*************************** CONCLUSION *******************************/
 
-  // Arrête le chronomètre et calcule le temps passé
+  // ArrÃªte le chronomÃ¨tre et calcule le temps passÃ©
   end = clock();
   time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
   
-  // Sleep un peu pour que la sortie standard ne soit pas foirée
+  // Sleep un peu pour que la sortie standard ne soit pas foirÃ©e
   //Sleep(500);
     
-  // Imprimer les résultats
+  // Imprimer les rÃ©sultats
   printf ("\nNombre diterations pour converger: %d \n\n", k); 
   printf ("Valeurs finales du PageRank:\n\n[");
   for (i=0; i<n; i++){
